@@ -4,6 +4,9 @@ import * as store from './store.js';
 import { PROVIDERS, readJournalPhoto, testChatKey } from './ai.js';
 import { createModelPicker } from './modelpicker.js';
 import { dateKey, validDate, MONTHS_SHORT, today } from './dates.js';
+import { bootStore } from './storage/boot.js';
+
+await bootStore();
 
 document.documentElement.dataset.hand = store.getSettings().hand;
 const s = () => store.getSettings();

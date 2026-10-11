@@ -32,6 +32,15 @@ browser to Groq / OpenRouter / DeepInfra and nowhere else. Because storage is pe
   entries to another device.
 - On iPhone, *Share → Add to Home Screen* so Safari keeps the data and the app opens full screen.
 
+## Moving to Firebase
+
+Storage already sits behind an adapter (`js/storage/`), so going to **Firebase Auth + Firestore** is a config
+change, not a rewrite: paste your web-app config into `js/storage/config.js` and the app switches from this
+browser's `localStorage` to your account — one document per day at `users/{uid}/entries/{YYYY-MM-DD}`,
+offline support, live sync between devices, and an offer to upload what's already on this device. API keys and
+per-device options never leave the device. Setup steps, the data model, `firestore.rules` and `firebase.json`
+are in [`docs/FIREBASE.md`](docs/FIREBASE.md).
+
 ## Hosting
 
 It is a static site — GitHub Pages serves it as-is (Settings → Pages → *Deploy from a branch* → `main` / root).
@@ -43,7 +52,8 @@ To try it locally: `python3 -m http.server` and open <http://localhost:8000>.
 index.html        app shell            import.html   photo import
 js/book.js        3D book + page flipping + in-place editing
 js/assist.js      dictate / summarize bar      js/ai.js   Groq, OpenRouter, DeepInfra calls
-js/store.js       entries + settings storage   js/views.js Journal / Calendar / Progress
+js/store.js       data layer (cache + adapter) js/views.js Journal / Calendar / Progress
+js/storage/       local + Firebase adapters    docs/FIREBASE.md  cloud setup
 js/settings.js    settings sheet               js/modelpicker.js  live model & price picker
 css/styles.css    all styling                  sw.js, manifest.webmanifest  offline / installable
 ```

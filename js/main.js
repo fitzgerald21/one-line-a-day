@@ -4,6 +4,9 @@ import { createBook } from './book.js';
 import { createJournal, createCalendar, createProgress } from './views.js';
 import { openEditor } from './editor.js';
 import { openSettings } from './settings.js';
+import { bootStore } from './storage/boot.js';
+
+await bootStore();
 
 const TABS = [
   ['book', 'Book', 'book'],
@@ -35,10 +38,24 @@ const nav = h('nav.tabs', { 'aria-label': 'Views' }, TABS.map(([id, label, ic]) 
   return b;
 }));
 
+// cloud sync indicator (only shown when a cloud backend is active)
+const syncEl = h('span.sync', { hidden: store.getBackend().name === 'local' });
+function paintSync() {
+  const st = store.getStatus();
+  const offline = !navigator.onLine;
+  syncEl.dataset.state = st === 'error' ? 'error' : st === 'saving' || offline ? 'saving' : 'saved';
+  syncEl.textContent = st === 'error' ? 'Not saved' : offline ? 'Offline · will sync' : st === 'saving' ? 'Saving…' : 'Synced';
+}
+store.onStatus(paintSync);
+addEventListener('online', paintSync);
+addEventListener('offline', paintSync);
+paintSync();
+
 const header = h('header.topbar',
   h('div.brand', h('span.brand-mark', icon('book', 18)), h('span.brand-name', 'One Line a Day')),
   nav,
   h('div.top-actions',
+    syncEl,
     h('button.icon-btn', { type: 'button', 'aria-label': 'Settings', title: 'Settings', onclick: () => openSettings() }, icon('sliders', 22))));
 
 const main = h('main.views');
@@ -82,7 +99,9 @@ store.onChange(() => {
   refreshTimer = setTimeout(() => views[current]?.refresh?.(), 150);
 });
 
-store.onStoreError(() => toast('Couldn’t save — this browser’s storage is full or blocked. Download a backup from Settings.', { ms: 8000 }));
+store.onStoreError(() => toast(store.getBackend().name === 'local'
+  ? 'Couldn’t save — this browser’s storage is full or blocked. Download a backup from Settings.'
+  : 'Couldn’t save to your account. Check your connection — your latest edits will retry.', { ms: 8000 }));
 
 // keyboard: arrows turn pages, T jumps to today
 addEventListener('keydown', (e) => {

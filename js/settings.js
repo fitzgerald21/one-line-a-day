@@ -46,6 +46,7 @@ function keyField({ label, get, set, test, helpUrl, placeholder }) {
 
 export function openSettings(section) {
   const s = () => store.getSettings();
+  const cloud = store.getBackend();
   const dlg = h('dialog.sheet.settings');
   let provider = s().ai.provider;
 
@@ -110,14 +111,18 @@ export function openSettings(section) {
       h('label.check', h('input', { type: 'checkbox', checked: s().autoSummarize, onchange: (e) => store.updateSettings({ autoSummarize: e.target.checked }) }), ' Summarize automatically after dictating')),
 
     sec('data', 'Your data',
-      h('p.hint', `Entries are stored only in this browser (${store.entryCount().toLocaleString()} so far). API keys never leave your device except to call the services above.`),
+      cloud.name === 'local'
+        ? h('p.hint', `Entries are stored only in this browser (${store.entryCount().toLocaleString()} so far). API keys never leave your device except to call the services above.`)
+        : h('div.account',
+          h('p.hint', `Synced to your account${cloud.user?.email ? ` (${cloud.user.email})` : ''} · ${store.entryCount().toLocaleString()} entries. API keys and per-device options stay on this device only.`),
+          h('button.btn.small', { type: 'button', onclick: () => cloud.signOut?.() }, 'Sign out')),
       h('div.row.wrap',
         h('button.btn', { type: 'button', onclick: () => { downloadFile(`one-line-a-day-${today().key}.json`, store.exportData()); store.markBackup(); toast('Backup downloaded.'); } }, icon('download', 18), 'Download backup'),
         h('label.btn', icon('upload', 18), 'Restore backup', h('input', { type: 'file', accept: 'application/json,.json', hidden: true, onchange: onRestore })),
         h('a.btn', { href: 'import.html' }, icon('camera', 18), 'Import from photos')),
       h('div.row.wrap',
         h('button.btn.danger-outline', { type: 'button', onclick: async () => {
-          if (await confirmDialog('This permanently deletes every entry stored in this browser. Download a backup first if you might want them back.', { ok: 'Delete everything', danger: true, title: 'Delete all entries?' })) {
+          if (await confirmDialog((cloud.name === 'local' ? 'This permanently deletes every entry stored in this browser.' : 'This permanently deletes every entry in your account, on all your devices.') + ' Download a backup first if you might want them back.', { ok: 'Delete everything', danger: true, title: 'Delete all entries?' })) {
             store.clearEntries(); toast('All entries deleted.');
           }
         } }, icon('trash', 18), 'Delete all entries')),

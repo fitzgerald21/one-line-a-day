@@ -227,7 +227,7 @@ a { color: inherit; }
 
 /* ------------------------------------------------------------ controls --- */
 .book-controls { flex: none; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 6px 12px 10px; }
-.view-book.editing .book-controls { display: none; }
+@media (max-width: 719px) { .view-book.editing .book-controls { display: none; } }
 .ctl-nav { display: flex; align-items: center; justify-content: center; gap: 6px; }
 .ctl {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 38px; min-width: 38px; padding: 0 10px;
@@ -506,3 +506,18 @@ body.import #app { position: static; padding: 16px 12px 60px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }
+
+/* ------------------------------------------------------- cloud sync / sign-in --- */
+.sync { align-self: center; padding: 3px 10px; border-radius: 999px; font: 500 12px var(--font-ui); letter-spacing: 0.04em; background: rgba(255, 255, 255, 0.1); color: rgba(243, 236, 224, 0.8); white-space: nowrap; }
+.sync[data-state='saving']::before, .sync[data-state='saved']::before, .sync[data-state='error']::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: #7ccf9b; }
+.sync[data-state='saving']::before { background: var(--gold-2); }
+.sync[data-state='error']::before { background: #e5675a; }
+.account { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.account .hint { margin: 0; }
+.signin { position: fixed; inset: 0; z-index: 500; display: grid; place-items: center; padding: 20px; background: var(--noise), radial-gradient(120% 90% at 50% 25%, #4d3b2e 0%, #33271f 50%, #1d1612 100%); }
+.signin-card { width: min(380px, 100%); padding: 28px 24px; text-align: center; border-radius: 20px; background: var(--cloth); color: #fbf6e6; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
+.signin-mark { margin-bottom: 14px; font: 500 22px var(--font-serif); letter-spacing: 0.18em; text-transform: uppercase; color: #f6e7ae; }
+.signin-card p { margin: 0 0 18px; line-height: 1.45; }
+.signin-card .btn.primary { width: 100%; background: #fbf6e6; color: #2a2018; }
+.signin-msg { margin: 12px 0 0 !important; font-size: 14px; color: #ffd9d3; }
+@media (max-width: 719px) { .sync { font-size: 11px; padding: 2px 8px; } }

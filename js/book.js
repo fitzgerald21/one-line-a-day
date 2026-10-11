@@ -116,11 +116,15 @@ export function createBook({ openSettings }) {
     S.lines = Math.max(2, Math.floor((BODY_EM - k * 0.12) / (S.lh * k)));
   }
 
+  function applyMetrics() {
+    book.style.setProperty('--lh', `${Math.max(10, Math.round((S.pw / 30) * S.lh))}px`);
+    book.style.setProperty('--lines', S.lines);
+  }
+
   function renderStatic() {
     S.years = store.bookYears();
     computeLines();
-    book.style.setProperty('--lh', `${Math.max(10, Math.round((S.pw / 30) * S.lh))}px`);
-    book.style.setProperty('--lines', S.lines);
+    applyMetrics();
     if (S.mode === 'spread') {
       const s = curIdx();
       setHalf(pgA, leftOf(s));
@@ -197,16 +201,18 @@ export function createBook({ openSettings }) {
       pw = byH >= byW * 0.84 ? Math.min(byW, byH) : byW; // shrink a little to avoid scrolling, else scroll
     }
     pw = Math.max(120, Math.floor(pw));
-    const changed = mode !== S.mode || pw !== S.pw;
+    const prevMode = S.mode, prevLines = S.lines;
     S.mode = mode;
     S.pw = pw;
+    computeLines();
+    const structural = mode !== prevMode || S.lines !== prevLines;
     book.dataset.mode = mode;
     book.style.setProperty('--pw', `${pw}px`);
     book.style.fontSize = `${pw / 30}px`;
     scroller.style.setProperty('--padx', `${padX}px`);
     scroller.style.setProperty('--pady', `${padY}px`);
-    if (changed && !S.flipping) renderStatic();
-    else strip.draw();
+    if (structural && !S.flipping && !S.editing) renderStatic();
+    else { applyMetrics(); updateStacks(); strip.draw(); }
   }
 
   // ---- flipping engine ------------------------------------------------------
