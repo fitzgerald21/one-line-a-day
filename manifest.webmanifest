@@ -1,0 +1,16 @@
+{
+  "name": "One Line a Day",
+  "short_name": "One Line",
+  "description": "A five-year memory book you can open, flip through and write in.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#231b15",
+  "theme_color": "#231b15",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
