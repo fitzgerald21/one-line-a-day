@@ -632,6 +632,22 @@ export function createBook({ openSettings }) {
   return {
     el,
     refresh() { fit(); if (S.stale || !block.querySelector('.page')) renderStatic(); else strip.draw(); },
+    /** Show a page without animating (used by the 3D book's write view). Optionally focus a line. */
+    jumpTo(page, focusKey) {
+      S.page = page;
+      fit();
+      renderStatic();
+      if (focusKey) {
+        const t = block.querySelector(`.slot-text[data-key="${focusKey}"]`);
+        if (t && t.isContentEditable) {
+          t.focus({ preventScroll: true });
+          const r = document.createRange(); r.selectNodeContents(t); r.collapse(false);
+          const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        }
+        pulse(focusKey);
+      }
+    },
+    get page() { return S.page; },
     goTo, goToday, goToKey, openBook,
     get isOpen() { return S.page !== -1; },
     get editing() { return !!S.editing; },

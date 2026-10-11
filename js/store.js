@@ -22,11 +22,12 @@ export const DEFAULTS = {
   pages: 'auto',        // 'auto' | 'single' | 'spread'
   writing: 'book',      // 'book' | 'comfy' | 'large'
   skipCover: false,
+  book3d: true,         // realistic WebGL book (falls back to the flat book if unavailable)
   keys: { groq: '', openrouter: '', deepinfra: '' },
   importAi: { provider: 'openrouter', model: '' },
   lastBackup: 0,
 };
-const DEVICE_KEYS = ['pages', 'writing', 'skipCover', 'keys', 'importAi', 'lastBackup'];
+const DEVICE_KEYS = ['pages', 'writing', 'skipCover', 'book3d', 'keys', 'importAi', 'lastBackup'];
 const SYNCED_KEYS = Object.keys(DEFAULTS).filter((k) => !DEVICE_KEYS.includes(k));
 
 const listeners = new Set();

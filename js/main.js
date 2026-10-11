@@ -16,7 +16,20 @@ const TABS = [
 ];
 
 const root = document.getElementById('app');
-const book = createBook({ openSettings });
+// The realistic 3D book needs WebGL and three.js (loaded from a CDN); anything goes wrong → the flat book.
+async function makeBook() {
+  if (store.getSettings().book3d) {
+    try {
+      const { createBook3D } = await import('./book3d.js');
+      return createBook3D({ openSettings });
+    } catch (err) {
+      console.warn('3D book unavailable, using the flat book:', err);
+    }
+  }
+  return createBook({ openSettings });
+}
+const book = await makeBook();
+window.__book = book; // handy for debugging in the console
 
 function openInBook(key) {
   show('book');

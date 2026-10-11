@@ -1,9 +1,9 @@
 // Offline support: network-first so updates show up right away, cache as fallback.
-const CACHE = 'olad-v2';
+const CACHE = 'olad-v3';
 const SHELL = ['./', 'index.html', 'import.html', 'css/styles.css', 'manifest.webmanifest', 'icons/icon.svg',
   'js/main.js', 'js/book.js', 'js/ui.js', 'js/store.js', 'js/dates.js', 'js/cover.js', 'js/assist.js', 'js/editor.js',
   'js/views.js', 'js/settings.js', 'js/modelpicker.js', 'js/ai.js', 'js/import.js',
-  'js/storage/boot.js', 'js/storage/local.js', 'js/storage/firebase.js', 'js/storage/config.js'];
+  'js/book3d.js', 'js/pagetex.js', 'js/storage/boot.js', 'js/storage/local.js', 'js/storage/firebase.js', 'js/storage/config.js'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).catch(() => {}));
@@ -19,7 +19,8 @@ self.addEventListener('fetch', (e) => {
   const sameOrigin = url.origin === location.origin;
   // fonts and the Firebase SDK (versioned, so safe to cache) may be fetched cross-origin
   const isFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com' ||
-    (url.hostname === 'www.gstatic.com' && url.pathname.startsWith('/firebasejs/'));
+    (url.hostname === 'www.gstatic.com' && url.pathname.startsWith('/firebasejs/')) ||
+    (url.hostname === 'cdn.jsdelivr.net' && url.pathname.startsWith('/npm/three@'));
   if (!sameOrigin && !isFont) return; // never touch API calls
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);

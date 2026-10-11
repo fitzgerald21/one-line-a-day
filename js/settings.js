@@ -73,6 +73,7 @@ export function openSettings(section) {
 
   const body = h('div.sheet-body',
     sec('look', 'The book',
+      h('label.check', h('input', { type: 'checkbox', checked: s().book3d, onchange: (e) => { store.updateSettings({ book3d: e.target.checked }); toast('Reloading to switch the book…'); setTimeout(() => location.reload(), 600); } }), ' Realistic 3D book (turn it over, bending pages) — turn off for a flat, lighter book'),
       h('div.field', h('label', 'Years shown on each page'),
         segmented([['sofar', 'Years so far'], ['five', 'All five rows']], () => s().layout, (v) => store.updateSettings({ layout: v })),
         h('p.hint', '“Years so far” only shows rows from the first year you wrote to this year. Rows grow as you go.')),
