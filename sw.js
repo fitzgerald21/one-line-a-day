@@ -1,5 +1,5 @@
 // Offline support: network-first so updates show up right away, cache as fallback.
-const CACHE = 'olad-v3';
+const CACHE = 'olad-v4';
 const SHELL = ['./', 'index.html', 'import.html', 'css/styles.css', 'manifest.webmanifest', 'icons/icon.svg',
   'js/main.js', 'js/book.js', 'js/ui.js', 'js/store.js', 'js/dates.js', 'js/cover.js', 'js/assist.js', 'js/editor.js',
   'js/views.js', 'js/settings.js', 'js/modelpicker.js', 'js/ai.js', 'js/import.js',

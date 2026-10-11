@@ -468,6 +468,7 @@ export function createBook({ openSettings }) {
     store.setText(t.dataset.key, t.innerText);
     checkOverflow(t.closest('.slot'));
     assist.refresh();
+    revealEditing();
   });
   block.addEventListener('paste', (e) => {
     if (!e.target.closest?.('.slot-text')) return;
@@ -481,6 +482,9 @@ export function createBook({ openSettings }) {
     S.editing = null;
     el.classList.remove('editing');
     document.documentElement.style.removeProperty('--kb');
+    // iOS can leave the page panned or the viewport short after the keyboard closes.
+    window.scrollTo(0, 0);
+    setTimeout(() => window.scrollTo(0, 0), 300);
     assist.setTarget(null);
     if (!store.getText(t.dataset.key) && t.textContent) t.textContent = '';
     store.flush();
@@ -490,13 +494,29 @@ export function createBook({ openSettings }) {
   function revealEditing() {
     const t = block.querySelector('.slot-text:focus');
     if (!t) return;
-    const slot = t.closest('.slot');
     const vv = window.visualViewport;
-    const top = Math.max(scroller.getBoundingClientRect().top, vv?.offsetTop || 0);
-    const bottom = (vv ? vv.offsetTop + vv.height : innerHeight) - 64;
-    const r = slot.getBoundingClientRect();
-    const delta = r.top + r.height / 2 - (top + bottom) / 2;
-    if (Math.abs(delta) > 24) scroller.scrollBy({ top: delta, behavior: 'smooth' });
+    const sr = scroller.getBoundingClientRect();
+    const pad = 16;
+    const visTop = Math.max(sr.top, vv?.offsetTop || 0) + pad;
+    const visBottom = Math.min(sr.bottom, vv ? vv.offsetTop + vv.height : innerHeight) - (assist.el.offsetHeight || 60) - pad;
+    // A slot can be a whole page tall, so follow the caret, not the slot.
+    let r = null;
+    const sel = getSelection();
+    if (sel?.rangeCount && t.contains(sel.anchorNode)) {
+      const range = sel.getRangeAt(0).cloneRange();
+      range.collapse(false);
+      const rects = range.getClientRects();
+      r = rects[rects.length - 1] || range.getBoundingClientRect();
+    }
+    if (!r || !r.height) {
+      const tr = t.getBoundingClientRect();
+      r = { top: tr.top, bottom: tr.top + (parseFloat(getComputedStyle(t).lineHeight) || 24) };
+    }
+    let delta = 0;
+    if (r.bottom + scroller.scrollTop <= visBottom) delta = -scroller.scrollTop; // fits with the page top showing
+    else if (r.bottom > visBottom) delta = r.bottom - visBottom;
+    else if (r.top < visTop) delta = r.top - visTop;
+    if (Math.abs(delta) > 4) scroller.scrollBy({ top: delta, behavior: 'smooth' });
   }
 
   function updateKeyboard() {
