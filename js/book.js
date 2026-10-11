@@ -452,6 +452,8 @@ export function createBook({ openSettings }) {
     el.classList.add('editing');
     assist.setTarget(adapter(t));
     setTimeout(revealEditing, 260);
+    updateKeyboard();
+    setTimeout(updateKeyboard, 350);
   });
   block.addEventListener('focusout', (e) => {
     const t = e.target.closest?.('.slot-text');
@@ -481,7 +483,7 @@ export function createBook({ openSettings }) {
   function endEditing(t) {
     S.editing = null;
     el.classList.remove('editing');
-    document.documentElement.style.removeProperty('--kb');
+    for (const v of ['--kb', '--vvh', '--vvt']) document.documentElement.style.removeProperty(v);
     // iOS can leave the page panned or the viewport short after the keyboard closes.
     window.scrollTo(0, 0);
     setTimeout(() => window.scrollTo(0, 0), 300);
@@ -523,7 +525,10 @@ export function createBook({ openSettings }) {
     const vv = window.visualViewport;
     if (!vv) return;
     const kb = Math.max(0, innerHeight - vv.height - vv.offsetTop);
-    document.documentElement.style.setProperty('--kb', `${Math.round(kb)}px`);
+    const root = document.documentElement.style;
+    root.setProperty('--kb', `${Math.round(kb)}px`);
+    if (S.editing || kb > 80) { root.setProperty('--vvh', `${Math.round(vv.height)}px`); root.setProperty('--vvt', `${Math.round(vv.offsetTop)}px`); }
+    else { root.removeProperty('--vvh'); root.removeProperty('--vvt'); }
     if (S.editing) setTimeout(revealEditing, 60);
   }
   window.visualViewport?.addEventListener('resize', updateKeyboard);
