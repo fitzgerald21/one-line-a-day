@@ -136,6 +136,16 @@ export function drawPage(cv, n, env) {
   g.font = `500 ${u * 1.12}px ${UI}`;
   g.textBaseline = 'alphabetic';
   spaced(g, `${MONTHS[m].toUpperCase()} ${d}`, w / 2, u * 3.55, u * 0.29);
+  // weekday (of the newest year shown), same line, right side
+  const latest = [...env.years].reverse().find((y) => d <= daysIn(y, m));
+  if (latest != null) {
+    const wd = WEEKDAYS_SHORT[weekdayOf(latest, m, d)].toUpperCase();
+    g.font = `500 ${u * 0.95}px ${UI}`;
+    g.fillStyle = dateKey(latest, m, d) === env.todayKey ? '#9a7a20' : '#6b857b';
+    const sp = u * 0.2;
+    const tw = [...wd].reduce((a, c) => a + g.measureText(c).width + sp, 0) - sp;
+    spaced(g, wd, w - (right ? 2.1 : 1.5) * u - u * 0.3 - tw / 2, u * 3.55, sp);
+  }
 
   const hand = HANDS[env.hand] || HANDS.caveat;
   const { lines, lh: lhEm, slotH, top } = slotLayout(env.years.length, env.writing);
@@ -199,19 +209,11 @@ export function drawPage(cv, n, env) {
     g.beginPath(); g.moveTo(startX + twenty + gap, midY + u * 0.68); g.lineTo(startX + twenty + gap + yyW, midY + u * 0.68); g.stroke(); g.setLineDash([]);
     g.globalAlpha = 1;
 
-    // weekday (top right of the first line)
-    let wdW = 0;
-    g.font = `500 ${u * 0.62}px ${UI}`;
-    g.fillStyle = isToday ? '#9a7a20' : '#7d9188';
-    if (valid) {
-      const wd = WEEKDAYS_SHORT[weekdayOf(y, m, d)].toUpperCase();
-      const sp = u * 0.16;
-      const tw = [...wd].reduce((a, c) => a + g.measureText(c).width + sp, 0) - sp;
-      let cx = x1 - u * 0.3 - tw;
-      g.textAlign = 'left';
-      [...wd].forEach((c) => { g.fillText(c, cx, bodyTop + lh * 0.7); cx += g.measureText(c).width + sp; });
-      wdW = tw + u * 0.7;
-    } else {
+    // the weekday now lives in the page header
+    const wdW = 0;
+    if (!valid) {
+      g.font = `500 ${u * 0.62}px ${UI}`;
+      g.fillStyle = '#7d9188';
       g.textAlign = 'center';
       spaced(g, 'NOT A LEAP YEAR', (x0 + x1) / 2, bodyTop + lh * 1.7, u * 0.16);
     }
