@@ -255,7 +255,7 @@ export function createBook3D({ openSettings }) {
 
   // DOM ---------------------------------------------------------------------------
   const canvas = h('canvas.b3d-canvas');
-  const hint = h('div.book-hint', 'Tap the cover to open · drag the table to turn the book around');
+  const hint = h('div.book-hint', 'Tap the cover to open · drag to turn the book around');
   const resetBtn = h('button.ctl.b3d-reset', { type: 'button', hidden: true, onclick: () => resetView() }, icon('undo', 18), h('span', 'Reset view'));
   const stage = h('div.b3d-stage', canvas, hint);
 
@@ -659,7 +659,7 @@ export function createBook3D({ openSettings }) {
       const canTurn = onPage && !S.busy && horizontal && facing() > 0.6 && nextS >= 0 && nextS <= MAX_S && !panOnly;
       if (panOnly) { g.mode = 'swipe'; step(dir); }
       else if (canTurn) { if (S.single && S.s > 0) S.side = validSide(nextS, dir > 0 ? 'L' : 'R'); startDragTurn(g, dir, e); }
-      else g.mode = 'orbit';
+      else g.mode = S.s === 0 ? 'orbit' : 'none'; // the book only spins while it's closed
     }
     if (g.mode === 'orbit') {
       const ddx = e.clientX - g.lx, ddy = e.clientY - g.ly;

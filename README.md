@@ -6,7 +6,7 @@ computer; no build step, no server, no account.
 
 ## Using it
 
-The book is a real 3D object (three.js): **drag the table to turn it over and around**, pinch or scroll to zoom,
+The book is a real 3D object (three.js): **drag to turn it over and around while it's closed** (once open, swipes only turn pages), pinch or scroll to zoom,
 double-tap the table or press *Reset view* to put it back in your hands. Pages are bendable sheets with physics —
 drag one and it follows your finger, flick it and it flies; jump across the year and a handful of leaves riffle past.
 On tall phone screens it frames one page at a time (page 2, 3, turn, 4, 5…); wider screens show the full spread.
