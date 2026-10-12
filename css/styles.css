@@ -551,3 +551,12 @@ body.import #app { position: static; padding: 16px 12px 60px; }
 .write-overlay .book-stage { padding-top: 0; }
 @media (max-width: 719px) { .write-back span { display: none; } .write-back { padding: 0 10px; } }
 body.writing .book-hint { display: none; }
+
+/* move-entry panel + hidden-year notice */
+.ed-move { margin-top: 10px; font-size: 13px; color: #6b6458; }
+.ed-move summary { cursor: pointer; padding: 6px 0; }
+.ed-move-row { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+.ed-move-row input[type='date'] { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid #cfc6b4; background: #fffdf7; color: #2a2018; }
+.ed-move-msg { margin-top: 6px; color: #9a6b12; }
+.notice-card { margin-bottom: 12px; padding: 12px 14px; border-radius: 14px; background: #fdecc8; border: 1px solid #e3b25a; color: #4b3510; }
+.notice-card p { margin: 6px 0 10px; font-size: 14px; }

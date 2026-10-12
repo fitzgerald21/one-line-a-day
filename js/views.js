@@ -25,6 +25,14 @@ export function createJournal({ openEditor }) {
     const t = today();
     hero.replaceChildren();
     if (query) return;
+    const hidden = store.hiddenEntryKeys();
+    if (hidden.length) {
+      const hy = [...new Set(hidden.map((k) => +k.slice(0, 4)))];
+      hero.append(h('section.notice-card',
+        h('b', `${plural(hidden.length, 'entry').replace('entrys', 'entries')} from ${hy.join(', ')} ${hidden.length === 1 ? 'isn’t' : 'aren’t'} showing in the book`),
+        h('p', 'The book holds five years in a row, so entries outside that window stay hidden there. If one has a misread year, open it and use “Wrong date? Move this entry”.'),
+        h('button.btn.small', { type: 'button', onclick: () => { year = String(hy[0]); shown = 80; render(); } }, `Show ${hy[0]}`)));
+    }
     const text = store.getText(t.key);
     const memories = store.entryYears().filter((y) => y < t.y && store.hasEntry(dateKey(y, t.m, t.d)));
     hero.append(h('section.hero-card',
@@ -79,7 +87,7 @@ export function createJournal({ openEditor }) {
     list.append(h('div.j-count', plural(keys.length, 'entry').replace('entrys', 'entries')));
   }
 
-  return { el, refresh: render };
+  return { el, refresh: render, showYear(y) { year = String(y); shown = 80; query = ''; search.value = ''; render(); } };
 }
 
 // =============================================================================

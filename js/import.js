@@ -163,7 +163,8 @@ function renderRows() {
     const refresh = () => {
       const ok = validDate(r.y, r.m - 1, r.d);
       const existing = ok ? store.getText(key()) : '';
-      note.textContent = !ok ? 'That date doesn’t exist.' : existing && existing !== r.text ? `Already has text: “${existing.slice(0, 60)}${existing.length > 60 ? '…' : ''}”` : '';
+      const ty = today().y;
+      note.textContent = !ok ? 'That date doesn’t exist.' : (r.y < ty - 4 || r.y > ty) ? `Year ${r.y} is outside the five-year book (${ty - 4}–${ty}). Is it a misread year?` : existing && existing !== r.text ? `Already has text: “${existing.slice(0, 60)}${existing.length > 60 ? '…' : ''}”` : '';
     };
     const num = (prop, min, max, w) => h('input', { type: 'number', min, max, value: r[prop], style: w && { width: w }, oninput: (e) => { r[prop] = +e.target.value; refresh(); } });
     const tr = h('tr' + (r.include ? '' : '.skip'),

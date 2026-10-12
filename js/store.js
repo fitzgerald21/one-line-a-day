@@ -179,6 +179,23 @@ export function setText(k, text, { raw } = {}) {
   emit(k);
 }
 
+/** Move an entry to another date. onConflict: 'ask' → returns 'exists' if the target has text; 'append' joins both. */
+export function moveEntry(from, to, onConflict = 'ask') {
+  if (from === to) return 'same';
+  const src = entries[from];
+  if (!src?.t) return 'missing';
+  const cur = entries[to]?.t;
+  if (cur && onConflict === 'ask') return 'exists';
+  const next = { ...src, u: Date.now() };
+  if (cur) { next.t = normalize(`${cur}\n${src.t}`); delete next.r; }
+  entries[to] = next;
+  delete entries[from];
+  version++;
+  markDirty(from); markDirty(to);
+  emit(from); emit(to);
+  return 'moved';
+}
+
 let idx = null;
 function index() {
   if (idx && idx.v === version) return idx;
@@ -212,6 +229,12 @@ export function bookYears() {
   const out = [];
   for (let y = base; y <= last; y++) out.push(y);
   return out;
+}
+
+/** Entries from years the five-year book can't currently show (e.g. a misread 2021 when the book is 2022–2026). */
+export function hiddenEntryKeys() {
+  const shown = new Set(bookYears());
+  return sortedKeys().filter((k) => !shown.has(+k.slice(0, 4)));
 }
 
 // ---- settings ----------------------------------------------------------------

@@ -135,6 +135,16 @@ store.onChange(() => {
 const start = location.hash.slice(1) || sessionStorage.getItem('olad.view') || 'book';
 show(start);
 
+// entries the five-year book can't show (usually a misread year from a photo import)
+setTimeout(() => {
+  const hidden = store.hiddenEntryKeys();
+  if (!hidden.length) return;
+  const y = +hidden[0].slice(0, 4);
+  toast(`${hidden.length} ${hidden.length === 1 ? 'entry is' : 'entries are'} from ${y}, outside the book’s five years.`, {
+    action: 'Review', ms: 9000, onAction: () => { show('journal'); views.journal.showYear(y); },
+  });
+}, 1500);
+
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }

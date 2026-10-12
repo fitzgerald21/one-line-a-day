@@ -37,8 +37,29 @@ export function openEditor(startKey, { onOpenBook, openSettings } = {}) {
     meta.textContent = n ? `${n} characters${n > goal * 1.6 ? ' · long for one line — try Summarize' : ''}` : '';
     meta.classList.toggle('warn', n > goal * 1.6);
   }
+  const dateInput = h('input', { type: 'date', 'aria-label': 'Move this entry to date' });
+  const moveMsg = h('div.ed-move-msg');
+  async function doMove() {
+    const to = dateInput.value;
+    moveMsg.textContent = '';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(to)) { moveMsg.textContent = 'Pick a date first.'; return; }
+    if (to === key) { moveMsg.textContent = 'That is already this date.'; return; }
+    if (!store.getText(key)) { moveMsg.textContent = 'There is nothing written on this day to move.'; return; }
+    let r = store.moveEntry(key, to);
+    if (r === 'exists') {
+      if (!confirm(`${longDate(to)} already has an entry. Add this text after it?`)) return;
+      r = store.moveEntry(key, to, 'append');
+    }
+    if (r === 'moved') { const from = longDate(key); load(to); moveMsg.textContent = `Moved from ${from}.`; }
+  }
+  const movePanel = h('details.ed-move',
+    h('summary', 'Wrong date? Move this entry'),
+    h('div.ed-move-row', dateInput, h('button.btn.small', { type: 'button', onclick: doMove }, 'Move')),
+    moveMsg);
   function load(k) {
     key = k;
+    dateInput.value = k;
+    moveMsg.textContent = '';
     title.textContent = longDate(k);
     area.value = store.getText(k);
     assist.setTarget(target);
@@ -52,7 +73,7 @@ export function openEditor(startKey, { onOpenBook, openSettings } = {}) {
       title,
       h('button.icon-btn', { type: 'button', 'aria-label': 'Next day', onclick: () => load(shiftKey(key, 1)) }, icon('right')),
       h('button.icon-btn.close', { type: 'button', 'aria-label': 'Close', onclick: () => dlg.close() }, icon('x'))),
-    h('div.sheet-body', area, meta),
+    h('div.sheet-body', area, meta, movePanel),
     onOpenBook && h('div.sheet-foot',
       h('button.btn.ghost', { type: 'button', onclick: () => { const k = key; dlg.close(); onOpenBook(k); } }, icon('book', 18), 'Open in the book')),
     assist.el);
