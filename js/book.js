@@ -57,17 +57,18 @@ export function createBook({ openSettings }) {
 
   function pageEl(n, ro) {
     const { m, d } = PAGES[n];
-    const page = h('div.page' + (n % 2 ? '.right' : '.left'), { 'data-n': n, style: `--lines:${S.lines}` },
-      h('header.p-head', h('span', `${MONTHS[m].toUpperCase()} ${d}`), headWeekday(m, d)));
+    const years = store.pageYears(m, d);
+    const page = h('div.page' + (n % 2 ? '.right' : '.left'), { 'data-n': n, style: `--lines:${linesFor(years.length)}` },
+      h('header.p-head', h('span', `${MONTHS[m].toUpperCase()} ${d}`), headWeekday(m, d, years)));
     const body = h('div.p-body');
-    for (const y of S.years) body.append(slotEl(y, m, d, ro));
+    for (const y of years) body.append(slotEl(y, m, d, ro));
     page.append(body);
     return page;
   }
 
   // the weekday sits in the page header, for the newest year shown
-  function headWeekday(m, d) {
-    const y = [...S.years].reverse().find((yy) => d <= daysIn(yy, m));
+  function headWeekday(m, d, years) {
+    const y = [...years].reverse().find((yy) => d <= daysIn(yy, m));
     if (y == null) return null;
     return h('span.p-wd' + (dateKey(y, m, d) === today().key ? '.today' : ''), WEEKDAYS_SHORT[weekdayOf(y, m, d)].toUpperCase());
   }
@@ -119,8 +120,12 @@ export function createBook({ openSettings }) {
   function computeLines() {
     const s = store.getSettings();
     S.lh = LH[s.writing] || LH.book;
-    const k = Math.max(1, S.years.length);
-    S.lines = Math.max(2, Math.floor((BODY_EM - k * 0.12) / (S.lh * k)));
+    S.lines = linesFor(S.years.length);
+  }
+  // ruled lines per year row: fewer years on a page means more lines each
+  function linesFor(count) {
+    const k = Math.max(1, count);
+    return Math.max(2, Math.floor((BODY_EM - k * 0.12) / (S.lh * k)));
   }
 
   function applyMetrics() {

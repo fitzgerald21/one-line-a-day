@@ -4,7 +4,7 @@
 //  • entries   keyed by 'YYYY-MM-DD' → { t: text, r?: original text before summarizing, u: updatedAt ms }
 //  • settings  split in two: SYNCED preferences go through the adapter (cloud when Firebase is on);
 //              DEVICE settings (API keys, page layout, writing size…) always stay in this browser.
-import { today, pageOfKey, parseKey, LAST } from './dates.js';
+import { today, pageOf, pageOfKey, parseKey, LAST } from './dates.js';
 
 const DK = 'olad.device.v1';
 const LEGACY_SK = 'olad.settings.v1'; // older versions kept everything in here
@@ -203,6 +203,7 @@ function index() {
   if (idx && idx.v === version) return idx;
   const years = new Set();
   const perPage = new Array(LAST + 1).fill(0);
+  const yearsByPage = Array.from({ length: LAST + 1 }, () => []);
   const keys = [];
   for (const k of Object.keys(entries)) {
     if (!entries[k]?.t) continue;
@@ -210,8 +211,9 @@ function index() {
     years.add(+k.slice(0, 4));
     perPage[pageOfKey(k)]++;
   }
-  keys.sort();
-  idx = { v: version, years: [...years].sort((a, b) => a - b), perPage, keys };
+  keys.sort(); // ascending, so each page's year list below is ascending too
+  for (const k of keys) yearsByPage[pageOfKey(k)].push(+k.slice(0, 4));
+  idx = { v: version, years: [...years].sort((a, b) => a - b), perPage, keys, yearsByPage };
   return idx;
 }
 export const entryYears = () => index().years;
@@ -222,7 +224,7 @@ export const sortedKeys = () => index().keys;
 export function bookYears() {
   const cy = today().y;
   const ys = entryYears();
-  // Only the years that have something written (plus this year, so today's page can always be written on).
+  // 'filled': every year with an entry (plus this year). Individual pages show fewer: see pageYears().
   if (settings.layout === 'filled') return [...new Set([...ys, cy])].sort((a, b) => a - b);
   let base = settings.startYear === 'auto' ? Math.min(ys[0] ?? cy, cy) : +settings.startYear;
   if (settings.startYear === 'auto' && cy - base > 4) base = cy - 4; // the five-year book is full
@@ -235,10 +237,26 @@ export function bookYears() {
   return out;
 }
 
-/** Entries from years the five-year book can't currently show (e.g. a misread 2021 when the book is 2022–2026). */
+/**
+ * The year rows on one page (month m 0-11, day d). In the 'filled' layout that is only the years with an entry
+ * on that date, at most the latest five; with none it is just this year, and today's page always has this year.
+ * Other layouts show the same rows on every page.
+ */
+export function pageYears(m, d) {
+  if (settings.layout !== 'filled') return bookYears();
+  const t = today();
+  const ys = index().yearsByPage[pageOf(m, d)];
+  const out = new Set(ys);
+  if (!ys.length || (m === t.m && d === t.d)) out.add(t.y);
+  return [...out].sort((a, b) => a - b).slice(-5);
+}
+
+/** Entries the book can't currently show (e.g. a misread 2021 when the book is 2022–2026). */
 export function hiddenEntryKeys() {
-  const shown = new Set(bookYears());
-  return sortedKeys().filter((k) => !shown.has(+k.slice(0, 4)));
+  return sortedKeys().filter((k) => {
+    const { y, m, d } = parseKey(k);
+    return !pageYears(m, d).includes(y);
+  });
 }
 
 // ---- settings ----------------------------------------------------------------

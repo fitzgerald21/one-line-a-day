@@ -200,7 +200,7 @@ class TexMgr {
   }
   env() {
     const s = store.getSettings();
-    return { years: store.bookYears(), writing: s.writing, hand: s.hand, todayKey: today().key, getText: store.getText };
+    return { years: store.bookYears(), pageYears: store.pageYears, writing: s.writing, hand: s.hand, todayKey: today().key, getText: store.getText };
   }
   bump(page) { if (page == null) this.global++; else this.ver.set(page, (this.ver.get(page) || 0) + 1); }
   /** low: a cheap 256px version used by leaves that are only on screen for a fraction of a second. */
@@ -764,10 +764,10 @@ export function createBook3D({ openSettings }) {
     if ((hit.kind === 'page') && hit.page != null && !S.busy) {
       const n = hit.page;
       const py = (1 - hit.uv.y) * 48;
-      const years = store.bookYears();
+      const { m, d } = PAGES[n];
+      const years = store.pageYears(m, d);
       const L = PT.slotLayout(years.length, store.getSettings().writing);
       const i = Math.floor((py - L.top) / L.slotH);
-      const { m, d } = PAGES[n];
       const key = i >= 0 && i < years.length ? dateKey(years[i], m, d) : null;
       openWrite(n, key);
     }

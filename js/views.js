@@ -240,7 +240,7 @@ export function createProgress({ openEditor, openInBook }) {
     }
 
     const per = store.filledPerPage();
-    const years5 = Math.max(1, store.bookYears().length);
+    const years5 = Math.min(5, Math.max(1, store.bookYears().length));
     buildGrid(mapGrid, (m, d) => {
       const dim = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m];
       if (d > dim) return h('div.yg-cell.na');

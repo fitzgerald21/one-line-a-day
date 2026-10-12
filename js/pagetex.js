@@ -121,7 +121,7 @@ function wrapLines(g, text, { x0, x1, lh, maxLines, floatW, firstReserve }) {
 }
 
 // ---- journal page ------------------------------------------------------------
-/** env = { years: number[], writing, hand, todayKey, getText(key) } */
+/** env = { years: number[], pageYears(m, d): number[], writing, hand, todayKey, getText(key) } */
 export function drawPage(cv, n, env) {
   const w = cv.width, h = cv.height, u = w / 30;
   const g = cv.getContext('2d');
@@ -130,6 +130,7 @@ export function drawPage(cv, n, env) {
   paper(g, w, h, u);
   gutter(g, w, h, right);
   const { m, d } = PAGES[n];
+  const years = env.pageYears(m, d);
 
   // header
   g.fillStyle = '#2b3a36';
@@ -137,7 +138,7 @@ export function drawPage(cv, n, env) {
   g.textBaseline = 'alphabetic';
   spaced(g, `${MONTHS[m].toUpperCase()} ${d}`, w / 2, u * 3.55, u * 0.29);
   // weekday (of the newest year shown), same line, right side
-  const latest = [...env.years].reverse().find((y) => d <= daysIn(y, m));
+  const latest = [...years].reverse().find((y) => d <= daysIn(y, m));
   if (latest != null) {
     const wd = WEEKDAYS_SHORT[weekdayOf(latest, m, d)].toUpperCase();
     g.font = `500 ${u * 0.95}px ${UI}`;
@@ -148,12 +149,12 @@ export function drawPage(cv, n, env) {
   }
 
   const hand = HANDS[env.hand] || HANDS.caveat;
-  const { lines, lh: lhEm, slotH, top } = slotLayout(env.years.length, env.writing);
+  const { lines, lh: lhEm, slotH, top } = slotLayout(years.length, env.writing);
   const lh = lhEm * u;
   const mL = (right ? 1.5 : 2.1) * u, mR = (right ? 2.1 : 1.5) * u;
   const x0 = mL, x1 = w - mR;
 
-  env.years.forEach((y, i) => {
+  years.forEach((y, i) => {
     const sy = (top + i * slotH) * u;
     const valid = d <= daysIn(y, m);
     const key = dateKey(y, m, d);
@@ -183,7 +184,7 @@ export function drawPage(cv, n, env) {
     // separator
     g.fillStyle = SEP;
     g.fillRect(x0, sy, x1 - x0, u * 0.1);
-    if (i === env.years.length - 1) g.fillRect(x0, sy + slotH * u, x1 - x0, u * 0.1);
+    if (i === years.length - 1) g.fillRect(x0, sy + slotH * u, x1 - x0, u * 0.1);
 
     // year badge
     const bx = x0 + u * 0.25, by = bodyTop + u * 0.2, bw = u * 4, bh = lh * 2 - u * 0.32;
