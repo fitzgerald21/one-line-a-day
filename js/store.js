@@ -11,7 +11,8 @@ const LEGACY_SK = 'olad.settings.v1'; // older versions kept everything in here
 
 export const DEFAULTS = {
   // synced
-  layout: 'sofar',      // 'sofar' = only years so far, 'five' = all five rows
+  layout: 'filled',     // 'filled' = only years that have entries, 'sofar' = every year from the first to now, 'five' = all five rows
+  layoutV: 2,           // bumped when the default layout changed: an older saved 'layout' is ignored once (see applySettings)
   startYear: 'auto',    // 'auto' = earliest year with entries, or a number
   hand: 'caveat',       // 'caveat' | 'kalam' | 'patrick' | 'clean'
   owner: '',
@@ -51,6 +52,7 @@ function pick(obj, keys) { const o = {}; for (const k of keys) if (k in obj) o[k
 function applySettings(src, keys) {
   for (const k of keys) {
     if (!(k in (src || {}))) continue;
+    if (k === 'layout' && src.layoutV !== DEFAULTS.layoutV) continue; // saved before 'filled' became the default
     settings[k] = isObj(DEFAULTS[k]) ? { ...DEFAULTS[k], ...src[k] } : src[k];
   }
 }
@@ -220,6 +222,8 @@ export const sortedKeys = () => index().keys;
 export function bookYears() {
   const cy = today().y;
   const ys = entryYears();
+  // Only the years that have something written (plus this year, so today's page can always be written on).
+  if (settings.layout === 'filled') return [...new Set([...ys, cy])].sort((a, b) => a - b);
   let base = settings.startYear === 'auto' ? Math.min(ys[0] ?? cy, cy) : +settings.startYear;
   if (settings.startYear === 'auto' && cy - base > 4) base = cy - 4; // the five-year book is full
   const inWindow = ys.filter((y) => y >= base && y <= base + 4);

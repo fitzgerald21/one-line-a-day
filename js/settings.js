@@ -75,9 +75,9 @@ export function openSettings(section) {
     sec('look', 'The book',
       h('label.check', h('input', { type: 'checkbox', checked: s().book3d, onchange: (e) => { store.updateSettings({ book3d: e.target.checked }); toast('Reloading to switch the book…'); setTimeout(() => location.reload(), 600); } }), ' Realistic 3D book (turn it over, bending pages) — turn off for a flat, lighter book'),
       h('div.field', h('label', 'Years shown on each page'),
-        segmented([['sofar', 'Years so far'], ['five', 'All five rows']], () => s().layout, (v) => store.updateSettings({ layout: v })),
-        h('p.hint', '“Years so far” only shows rows from the first year you wrote to this year. Rows grow as you go.')),
-      h('div.field', h('label', 'First year of the book'),
+        segmented([['filled', 'Years with entries'], ['sofar', 'Years so far'], ['five', 'All five rows']], () => s().layout, (v) => store.updateSettings({ layout: v })),
+        h('p.hint', '“Years with entries” skips empty years and has no five-year limit (this year is always there to write on). “Years so far” shows every row from the first year you wrote to this year.')),
+      h('div.field', h('label', 'First year of the book (for the other two layouts)'),
         h('select', { onchange: (e) => store.updateSettings({ startYear: e.target.value === 'auto' ? 'auto' : +e.target.value }) },
           h('option', { value: 'auto', selected: s().startYear === 'auto' }, 'Automatic (earliest year with entries)'),
           startYears.map((y) => h('option', { value: y, selected: s().startYear === y }, y)))),
@@ -135,8 +135,14 @@ export function openSettings(section) {
     if (!file) return;
     try {
       const data = JSON.parse(await file.text());
-      const replace = await confirmDialog(`Found ${Object.keys(data.entries || {}).length} entries. Merge them with what's here (keeping your current text when both exist), or replace everything?`, { ok: 'Merge', cancel: 'Replace all', title: 'Restore backup' });
-      const r = store.importData(data, replace ? 'merge' : 'replace');
+      const count = Object.keys(data.entries || {}).length;
+      let mode = 'merge';
+      if (!await confirmDialog(`Found ${count} entries. Merge them with what's here? Days that already have text keep their current text.`, { ok: 'Merge', cancel: 'Not now', title: 'Restore backup' })) {
+        // Replacing deletes everything first, so it needs its own explicit yes (Esc / Not now must never wipe the journal).
+        if (!await confirmDialog('Replace everything in your journal with this file instead? Every current entry will be deleted.', { ok: 'Replace all', cancel: 'Cancel', danger: true, title: 'Replace all entries?' })) return;
+        mode = 'replace';
+      }
+      const r = store.importData(data, mode);
       toast(`Restored: ${r.added} added${r.skipped ? `, ${r.skipped} kept as-is` : ''}.`);
     } catch (err) {
       toast(`Could not restore: ${err.message}`, { ms: 6000 });
