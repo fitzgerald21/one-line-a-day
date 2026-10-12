@@ -44,7 +44,7 @@ browser to Groq / OpenRouter / DeepInfra and nowhere else. Because storage is pe
 Storage already sits behind an adapter (`js/storage/`), so going to **Firebase Auth + Firestore** is a config
 change, not a rewrite: paste your web-app config into `js/storage/config.js` and the app switches from this
 browser's `localStorage` to your account — one document per day at `users/{uid}/entries/{YYYY-MM-DD}`,
-offline support, live sync between devices, and an offer to upload what's already on this device. API keys and
+offline support, live sync between devices, and automatic upload of what's already on this device. API keys and
 per-device options never leave the device. Setup steps, the data model, `firestore.rules` and `firebase.json`
 are in [`docs/FIREBASE.md`](docs/FIREBASE.md).
 

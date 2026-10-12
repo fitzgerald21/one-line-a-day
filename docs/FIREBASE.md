@@ -5,7 +5,24 @@ The app already talks to storage through an **adapter** (`js/storage/`). Today i
 other code changes. The UI, book, journal and editor are untouched — they read from an in-memory cache
 (`js/store.js`) that the adapter keeps in sync.
 
-## One-time setup
+## This app's project (shared)
+
+One Line a Day uses the **`come-back-fitz21`** Firebase project, shared with Come back and Little Bites. It has its
+own web app registration ("One Line a Day"); the config is already in `js/storage/config.js`. Google sign-in and the
+`fitzgerald21.github.io` authorized domain are already set up there.
+
+**Firestore has one ruleset per project, shared by every app in it.** `firestore.rules` (and `storage.rules`) are kept
+**identical** in the One Line a Day, Come back and Little Bites repos, so deploying from any of them is safe. If you
+edit one, copy it to the other two. This app's data lives under `users/{uid}/entries` and `users/{uid}/settings`;
+the other apps use `users/{uid}`, `users/{uid}/sessions` and `users/{uid}/babies`, so the paths don't overlap.
+**Only fitzgeraldryan21@gmail.com can use this app's data** (`isOlad` in `firestore.rules`), and the app requires
+Google sign-in before opening. To add someone, edit the email in the rules (in all three repos) and `allowedEmail`
+in `js/storage/config.js`, then redeploy.
+Deploy with: `firebase deploy --only firestore:rules,storage --project come-back-fitz21`
+
+## Setting up a fresh project instead
+
+Skip this if you're using the shared project above.
 
 1. **Create a project** at <https://console.firebase.google.com>.
 2. **Authentication → Sign-in method →** enable **Google**.
@@ -19,7 +36,7 @@ other code changes. The UI, book, journal and editor are untouched — they read
    (The config is not secret; the security rules below are what protect your data.)
 6. **Publish the security rules** — either paste [`firestore.rules`](../firestore.rules) into
    *Firestore → Rules*, or `firebase deploy --only firestore:rules`.
-7. Reload the app. It shows **Continue with Google**; after sign-in it offers to upload any entries that only
+7. Reload the app. It shows **Continue with Google**; after sign-in it automatically uploads any entries that only
    exist in that browser (once per account).
 
 Optional: host it on Firebase too — `firebase deploy --only hosting` (see `firebase.json`), then add the
