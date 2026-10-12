@@ -291,7 +291,7 @@ dialog::backdrop { background: rgba(14, 10, 7, 0.62); backdrop-filter: blur(3px)
 .sheet-head h2 { flex: 1; margin: 0; font: 600 18px var(--font-ui); letter-spacing: 0.04em; }
 .sheet-head .icon-btn { color: var(--text); }
 .sheet-head .icon-btn:hover { background: rgba(0, 0, 0, 0.07); }
-.sheet-body { overflow: auto; padding: 16px; flex: 1; -webkit-overflow-scrolling: touch; }
+.sheet-body { overflow: auto; padding: 16px; flex: 1 1 auto; min-height: 0; -webkit-overflow-scrolling: touch; }
 .sheet-foot { padding: 6px 12px 12px; flex: none; }
 .sheet h3 { margin: 0 0 8px; font: 600 17px var(--font-ui); }
 .sheet p { margin: 0 0 12px; line-height: 1.5; }
@@ -315,9 +315,10 @@ dialog::backdrop { background: rgba(14, 10, 7, 0.62); backdrop-filter: blur(3px)
 
 /* quick editor + jump */
 dialog.editor .sheet-head { padding-left: 6px; }
+@media (min-width: 641px) { dialog.editor { height: min(620px, calc(100dvh - 24px)); } } /* fixed height: don't rely on content sizing (Safari collapsed it) */
 .ed-title { flex: 1; text-align: center; font: 600 16px var(--font-ui); letter-spacing: 0.02em; }
 .ed-text {
-  display: block; width: 100%; min-height: 36vh; padding: 0 4px; border: 0; outline: none; resize: none; color: var(--ink); background-color: transparent;
+  display: block; width: 100%; min-height: max(220px, 36vh); padding: 0 4px; border: 0; outline: none; resize: none; color: var(--ink); background-color: transparent;
   font: 400 24px / 36px var(--font-hand); background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 35px, var(--rule) 35px, var(--rule) 36px); background-attachment: local;
 }
 html[data-hand='clean'] .ed-text { font-size: 18px; }
@@ -528,11 +529,11 @@ body.import #app { position: static; padding: 16px 12px 60px; }
 @media (max-width: 719px) { .sync { font-size: 11px; padding: 2px 8px; } }
 
 /* ------------------------------------------------------------- 3D book --- */
-.view-book3d { position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; }
-.b3d-stage { position: relative; flex: 1; min-height: 0; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.view-book3d { position: relative; overflow: hidden; display: flex; flex-direction: column; width: 100%; height: 100%; }
+.b3d-stage { position: relative; overflow: hidden; flex: 1; min-height: 0; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
 .b3d-stage:active { cursor: grabbing; }
 .b3d-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transition: transform 0.28s ease, opacity 0.28s ease; transform-origin: 50% 45%; }
-.b3d-canvas.zoomed { transform: scale(1.18); opacity: 0.25; }
+.b3d-canvas.zoomed { transform: scale(1.18); opacity: 0.25; pointer-events: none; }
 .view-book3d[data-closed='1'] .book-hint { opacity: 1; }
 .b3d-reset { background: rgba(255, 255, 255, 0.14); }
 .write-overlay {
