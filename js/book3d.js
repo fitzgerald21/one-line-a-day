@@ -692,7 +692,7 @@ export function createBook3D({ openSettings }) {
       }
       return;
     }
-    if (cancelled || performance.now() - g.t0 > 600) return;
+    if (g.mode || cancelled || performance.now() - g.t0 > 600) return; // any swipe/drag is never a tap
     handleTap(g.hit);
   };
   stage.addEventListener('pointerup', (e) => endPointer(e, false));
