@@ -815,16 +815,15 @@ export function createBook3D({ openSettings }) {
   function degrade() {
     quality--;
     if (quality === 1) {
-      renderer.shadowMap.type = THREE.BasicShadowMap;
-      sun.shadow.mapSize.set(1024, 1024);
-      sun.shadow.map?.dispose(); sun.shadow.map = null;
-    } else if (quality <= 0) {
-      renderer.shadowMap.enabled = false;
+      // cheap first step: no shader recompile, so it can't itself cause a hitch mid-animation
       renderer.setPixelRatio(1);
       renderer.setSize(size.w, size.h, false);
+    } else if (quality <= 0) {
+      renderer.shadowMap.enabled = false;
       sun.castShadow = false;
+      sun.shadow.map?.dispose(); sun.shadow.map = null;
+      scene.traverse((o) => { if (o.material) [].concat(o.material).forEach((m) => { m.needsUpdate = true; }); });
     }
-    scene.traverse((o) => { if (o.material) [].concat(o.material).forEach((m) => { m.needsUpdate = true; }); });
     slow = 0;
   }
 
@@ -834,8 +833,8 @@ export function createBook3D({ openSettings }) {
     const dt = Math.min(0.05, Math.max(0.001, raw));
     lastT = now;
     let active = false;
-    if (quality > 0 && (flights.length || omega.lengthSq() > 1e-5)) {
-      slow = raw > 0.045 && raw < 1 ? slow + 1 : Math.max(0, slow - 1);
+    if (quality > 0 && (flights.length || omega.lengthSq() > 4e-4)) {
+      slow = raw > 0.045 && raw < 0.25 ? slow + 1 : Math.max(0, slow - 1);
       if (slow >= 10) degrade();
     }
 
@@ -851,11 +850,11 @@ export function createBook3D({ openSettings }) {
     } else if (S.tR !== tt.tR || S.tL !== tt.tL) { S.tR = tt.tR; S.tL = tt.tL; layoutStatics(); }
 
     // orbit inertia + easing back to the reading pose
-    if (omega.lengthSq() > 1e-5 && !gesture) {
+    if (omega.lengthSq() > 4e-4 && !gesture) {
       rotateBy(omega.x * dt, omega.y * dt);
-      omega.multiplyScalar(Math.exp(-3.2 * dt));
+      omega.multiplyScalar(Math.exp(-4.5 * dt));
       active = true;
-    }
+    } else if (!gesture && omega.lengthSq() > 0) omega.set(0, 0);
     const target = wantedPose();
     if (!S.userPose && !(gesture && gesture.mode === 'orbit')) {
       const ang = q.angleTo(target);
