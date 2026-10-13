@@ -806,8 +806,9 @@ export function createBook3D({ openSettings }) {
   }
 
   // render loop -----------------------------------------------------------------------------------------
-  let raf = 0, lastT = 0, idleWarm = 0;
-  function dirty() { S.dirty = true; if (!raf) { lastT = performance.now(); raf = requestAnimationFrame(frame); } }
+  let raf = 0, lastT = 0, idleWarm = 0, inFrame = false;
+  // inside frame() the loop reschedules itself, so dirty() must not start a second rAF chain (they'd multiply every frame)
+  function dirty() { S.dirty = true; if (!raf && !inFrame) { lastT = performance.now(); raf = requestAnimationFrame(frame); } }
 
   // Adaptive quality: if animation frames take too long (weak GPU / software rendering), drop soft shadows,
   // then shadows entirely, then to 1× pixel ratio — smoothness matters more than shadow polish.
@@ -829,6 +830,7 @@ export function createBook3D({ openSettings }) {
 
   function frame(now) {
     raf = 0;
+    inFrame = true;
     const raw = (now - lastT) / 1000;
     const dt = Math.min(0.05, Math.max(0.001, raw));
     lastT = now;
@@ -880,7 +882,8 @@ export function createBook3D({ openSettings }) {
     if (tex.queue.length) { tex.pump(); active = true; }
     renderer.render(scene, camera);
     S.dirty = false;
-    if (active || S.dirty || flights.length) { raf = requestAnimationFrame(frame); }
+    inFrame = false;
+    if (active || flights.length) { raf = requestAnimationFrame(frame); }
   }
 
   const idle = (fn, ms) => (window.requestIdleCallback ? window.requestIdleCallback(fn, { timeout: ms }) : setTimeout(fn, ms));
