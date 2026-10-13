@@ -59,18 +59,11 @@ export function createBook({ openSettings }) {
     const { m, d } = PAGES[n];
     const years = store.pageYears(m, d);
     const page = h('div.page' + (n % 2 ? '.right' : '.left'), { 'data-n': n, style: `--lines:${linesFor(years.length)}` },
-      h('header.p-head', h('span', `${MONTHS[m].toUpperCase()} ${d}`), headWeekday(m, d, years)));
+      h('header.p-head', h('span', `${MONTHS[m].toUpperCase()} ${d}`)));
     const body = h('div.p-body');
     for (const y of years) body.append(slotEl(y, m, d, ro));
     page.append(body);
     return page;
-  }
-
-  // the weekday sits in the page header, for the newest year shown
-  function headWeekday(m, d, years) {
-    const y = [...years].reverse().find((yy) => d <= daysIn(yy, m));
-    if (y == null) return null;
-    return h('span.p-wd' + (dateKey(y, m, d) === today().key ? '.today' : ''), WEEKDAYS_SHORT[weekdayOf(y, m, d)].toUpperCase());
   }
 
   function slotEl(y, m, d, ro) {
@@ -89,7 +82,7 @@ export function createBook({ openSettings }) {
     return h('section.slot', { 'data-key': k, class: [isToday && 'today', !valid && 'na'].filter(Boolean).join(' ') },
       h('div.slot-scroll',
         h('div.badge', h('span.b20', '20'), h('span.byy', String(y).slice(2))),
-        valid ? null : h('div.wd', 'NOT A LEAP YEAR'),
+        h('div.wd', valid ? WEEKDAYS_SHORT[weekdayOf(y, m, d)].toUpperCase() : 'NOT A LEAP YEAR'),
         text));
   }
 

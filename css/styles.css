@@ -183,8 +183,6 @@ html[data-cover='light'] .cover-art { filter: drop-shadow(0 0.6px 0 rgba(255, 25
   position: absolute; left: 0; right: 0; top: 0; height: calc(var(--u) * 4.4); display: flex; align-items: flex-end; justify-content: center; padding-bottom: calc(var(--u) * 0.8);
   font: 500 calc(var(--u) * 1.12) / 1 var(--font-ui); letter-spacing: 0.26em; color: #2b3a36; text-indent: 0.26em;
 }
-.p-wd { position: absolute; right: calc(var(--mR) + var(--u) * 0.3); bottom: calc(var(--u) * 0.8); font: 500 calc(var(--u) * 0.95) / 1 var(--font-ui); letter-spacing: 0.2em; color: #6b857b; }
-.p-wd.today { color: #9a7a20; font-weight: 600; }
 .p-body { position: absolute; top: calc(var(--u) * 4.4); left: var(--mL); right: var(--mR); }
 .slot { position: relative; height: calc(var(--lines) * var(--lh)); border-top: calc(var(--u) * 0.1) solid var(--sep); box-sizing: content-box; }
 .slot:last-child { border-bottom: calc(var(--u) * 0.1) solid var(--sep); }
