@@ -13,6 +13,7 @@ On tall phone screens it frames one page at a time (page 2, 3, turn, 4, 5…); w
 Tap a line on a page and the view zooms into a flat write view to type or dictate; *Back to the book* returns.
 If WebGL isn't available (or you switch it off in *Settings → The book*) it falls back to a flat CSS book.
 
+- **Pick a cover** – Settings → The book → Cover: teal & gold (the original), midnight & silver, terracotta & ivory, forest & rose gold, plum & champagne, or linen & ink. Designs live in `js/covers.js`.
 - **Open the book** – tap the cover. It flips through to today and highlights today's line in gold.
 - **Turn pages** – swipe/drag the page, tap the outer edge, use the ‹ › buttons, or the arrow keys.
   Drag along the strip at the bottom to scrub through the year (gold bars show where you've written; the

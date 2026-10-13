@@ -1,7 +1,7 @@
 // Offline support: network-first so updates show up right away, cache as fallback.
-const CACHE = 'olad-v16';
+const CACHE = 'olad-v17';
 const SHELL = ['./', 'index.html', 'import.html', 'css/styles.css', 'manifest.webmanifest', 'icons/icon.svg',
-  'js/main.js', 'js/book.js', 'js/ui.js', 'js/store.js', 'js/dates.js', 'js/cover.js', 'js/assist.js', 'js/editor.js',
+  'js/main.js', 'js/book.js', 'js/ui.js', 'js/store.js', 'js/dates.js', 'js/cover.js', 'js/covers.js', 'js/assist.js', 'js/editor.js',
   'js/views.js', 'js/settings.js', 'js/modelpicker.js', 'js/ai.js', 'js/import.js',
   'js/book3d.js', 'js/pagetex.js', 'js/storage/boot.js', 'js/storage/local.js', 'js/storage/firebase.js', 'js/storage/config.js'];
 

@@ -21,8 +21,9 @@
   --hs: 0.94;
   --kb: 0px;
   --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45  0 0 0 0 .38  0 0 0 0 .22  0 0 0 .28 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --cloth-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 .1  0 0 0 0 .1  0 0 0 .38 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --cloth: var(--cloth-noise), linear-gradient(135deg, #8bb6b2 0%, #72a09c 45%, #7eaba7 100%);
+  --cloth-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .04  0 0 0 0 .07  0 0 0 0 .06  0 0 0 .38 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --cloth-teal: var(--cloth-noise), linear-gradient(135deg, #8bb6b2 0%, #72a09c 45%, #7eaba7 100%);
+  --cloth: var(--cloth-teal); /* the chosen cover's cloth — set from js/cover.js */
 }
 html[data-hand='kalam'] { --font-hand: 'Kalam', 'Bradley Hand', cursive; --hs: 0.72; }
 html[data-hand='patrick'] { --font-hand: 'Patrick Hand', 'Bradley Hand', cursive; --hs: 0.8; }
@@ -57,7 +58,7 @@ a { color: inherit; }
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 .brand { display: flex; align-items: center; gap: 10px; font: 500 15px var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; white-space: nowrap; }
-.brand-mark { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--cloth); color: #f1dc97; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 2px 6px rgba(0, 0, 0, 0.4); }
+.brand-mark { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--cloth); color: var(--brand-ink, #f1dc97); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 2px 6px rgba(0, 0, 0, 0.4); }
 .tabs { display: flex; gap: 4px; margin: 0 auto; }
 .tab { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border: 0; border-radius: 999px; background: transparent; color: rgba(243, 236, 224, 0.7); font-weight: 500; font-size: 14px; letter-spacing: 0.04em; }
 .tab:hover { color: #fff; background: rgba(255, 255, 255, 0.07); }
@@ -141,7 +142,7 @@ a { color: inherit; }
   position: absolute; z-index: 4; top: calc(var(--pw) * -0.022); bottom: calc(var(--pw) * -0.022); left: 0; right: calc(var(--pw) * -0.04);
   border-radius: 0 calc(var(--pw) * 0.02) calc(var(--pw) * 0.02) 0; background: var(--cloth); cursor: pointer;
   box-shadow: inset 0 0 calc(var(--pw) * 0.1) rgba(0, 0, 0, 0.2), inset calc(var(--pw) * 0.012) 0 calc(var(--pw) * 0.01) rgba(0, 0, 0, 0.18),
-    0 1px 0 #5f8d8a, 0 2px 0 #55827f, 0 3px 0 #4b7673, 0 4px 0 #416b68;
+    0 1px 0 var(--cover-edge-1, #5f8d8a), 0 2px 0 var(--cover-edge-2, #55827f), 0 3px 0 var(--cover-edge-3, #4b7673), 0 4px 0 var(--cover-edge-4, #416b68);
 }
 .cover-face::before { content: ''; position: absolute; top: 0; bottom: 0; left: 4.2%; width: 2px; background: rgba(0, 0, 0, 0.14); box-shadow: 1px 0 0 rgba(255, 255, 255, 0.16); }
 .cover-art { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 0.6px 0 rgba(0, 0, 0, 0.35)) drop-shadow(0 0 1px rgba(255, 235, 170, 0.35)); pointer-events: none; }
@@ -151,6 +152,7 @@ a { color: inherit; }
 }
 .cover-inside > .page { inset: calc(var(--pw) * 0.022) 0 calc(var(--pw) * 0.022) calc(var(--pw) * 0.04); }
 .view-book[data-closed='1'] .cover-face { animation: breathe 3.6s ease-in-out infinite; }
+html[data-cover='light'] .cover-art { filter: drop-shadow(0 0.6px 0 rgba(255, 255, 255, 0.55)); }
 @keyframes breathe { 50% { filter: brightness(1.06); } }
 .book-hint { position: absolute; left: 0; right: 0; bottom: 6px; text-align: center; pointer-events: none; color: rgba(243, 236, 224, 0.72); font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0; transition: opacity 0.5s; }
 .view-book[data-closed='1'] .book-hint { opacity: 1; }
@@ -521,7 +523,7 @@ body.import #app { position: static; padding: 16px 12px 60px; }
 .account { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 .account .hint { margin: 0; }
 .signin { position: fixed; inset: 0; z-index: 500; display: grid; place-items: center; padding: 20px; background: var(--noise), radial-gradient(120% 90% at 50% 25%, #4d3b2e 0%, #33271f 50%, #1d1612 100%); }
-.signin-card { width: min(380px, 100%); padding: 28px 24px; text-align: center; border-radius: 20px; background: var(--cloth); color: #fbf6e6; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
+.signin-card { width: min(380px, 100%); padding: 28px 24px; text-align: center; border-radius: 20px; background: var(--cloth-teal); color: #fbf6e6; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
 .signin-mark { margin-bottom: 14px; font: 500 22px var(--font-serif); letter-spacing: 0.18em; text-transform: uppercase; color: #f6e7ae; }
 .signin-card p { margin: 0 0 18px; line-height: 1.45; }
 .signin-card .btn.primary { width: 100%; background: #fbf6e6; color: #2a2018; }
@@ -561,3 +563,11 @@ body.writing .book-hint { display: none; }
 .ed-move-msg { margin-top: 6px; color: #9a6b12; }
 .notice-card { margin-bottom: 12px; padding: 12px 14px; border-radius: 14px; background: #fdecc8; border: 1px solid #e3b25a; color: #4b3510; }
 .notice-card p { margin: 6px 0 10px; font-size: 14px; }
+
+/* cover picker (Settings → The book) */
+.cover-picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; }
+.cover-pick { display: grid; gap: 6px; justify-items: center; padding: 8px 6px 7px; border: 2px solid transparent; border-radius: 12px; background: rgba(0, 0, 0, 0.04); color: var(--text); font-size: 12.5px; font-weight: 500; line-height: 1.2; cursor: pointer; }
+.cover-pick:hover { background: rgba(0, 0, 0, 0.07); }
+.cover-pick.on { border-color: var(--teal-d); background: rgba(47, 111, 107, 0.1); }
+.cover-pick .cp-art { position: relative; width: 100%; aspect-ratio: 5 / 8; border-radius: 3px 7px 7px 3px; overflow: hidden; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35), inset 2px 0 0 rgba(0, 0, 0, 0.18); }
+.cover-pick .cp-art svg { position: absolute; inset: 0; width: 100%; height: 100%; }

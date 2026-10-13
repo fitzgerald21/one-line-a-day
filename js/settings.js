@@ -4,6 +4,8 @@ import * as store from './store.js';
 import { PROVIDERS, WHISPER_MODELS, testGroqKey, testChatKey } from './ai.js';
 import { createModelPicker } from './modelpicker.js';
 import { today } from './dates.js';
+import { COVERS, COVER_IDS, DEFAULT_COVER, clothCss } from './covers.js';
+import { coverSVG } from './cover.js';
 
 const HANDS = [
   ['caveat', 'Caveat — loose, quick'],
@@ -19,6 +21,19 @@ function segmented(options, getValue, onPick) {
       type: 'button', role: 'radio', 'aria-checked': v === getValue(), onclick: () => { onPick(v); paint(); },
     }, label)));
   };
+  paint();
+  return wrap;
+}
+
+function coverPicker() {
+  const wrap = h('div.cover-picks', { role: 'radiogroup', 'aria-label': 'Cover design' });
+  const paint = () => wrap.replaceChildren(...COVER_IDS.map((id) => {
+    const cv = COVERS[id], on = (store.getSettings().cover || DEFAULT_COVER) === id;
+    return h('button.cover-pick' + (on ? '.on' : ''), {
+      type: 'button', role: 'radio', 'aria-checked': on, title: cv.label,
+      onclick: () => { store.updateSettings({ cover: id }); paint(); },
+    }, h('span.cp-art', { style: { background: clothCss(cv) }, html: coverSVG(id) }), cv.label);
+  }));
   paint();
   return wrap;
 }
@@ -74,6 +89,8 @@ export function openSettings(section) {
   const body = h('div.sheet-body',
     sec('look', 'The book',
       h('label.check', h('input', { type: 'checkbox', checked: s().book3d, onchange: (e) => { store.updateSettings({ book3d: e.target.checked }); toast('Reloading to switch the book…'); setTimeout(() => location.reload(), 600); } }), ' Realistic 3D book (turn it over, bending pages) — turn off for a flat, lighter book'),
+      h('div.field', h('label', 'Cover'), coverPicker(),
+        h('p.hint', 'Pick the look of the book’s cover — colour, foil and artwork. It follows you to your other devices.')),
       h('div.field', h('label', 'Years shown on each page'),
         segmented([['filled', 'Years with entries'], ['sofar', 'Years so far'], ['five', 'All five rows']], () => s().layout, (v) => store.updateSettings({ layout: v })),
         h('p.hint', '“Years with entries” skips empty years and has no five-year limit (this year is always there to write on). “Years so far” shows every row from the first year you wrote to this year.')),

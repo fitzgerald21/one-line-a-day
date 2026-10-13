@@ -2,6 +2,7 @@
 // cover, the cloth, the endpaper boards. Pure canvas — no three.js in here.
 //
 // A page is 30 × 48 "units" (same as the CSS version); everything is drawn in units so it scales with the texture.
+import { coverOf } from './covers.js';
 import { PAGES, MONTHS, WEEKDAYS_SHORT, dateKey, daysIn, weekdayOf } from './dates.js';
 
 export const HANDS = {
@@ -245,14 +246,14 @@ export function drawPage(cv, n, env) {
 }
 
 // ---- cloth, cover, endpapers ---------------------------------------------------
-export function drawCloth(cv) {
+export function drawCloth(cv, cover = coverOf()) {
   const w = cv.width, h = cv.height, g = cv.getContext('2d');
   const bg = g.createLinearGradient(0, 0, w, h);
-  bg.addColorStop(0, '#8bb6b2'); bg.addColorStop(0.45, '#72a09c'); bg.addColorStop(1, '#7eaba7');
+  bg.addColorStop(0, cover.cloth[0]); bg.addColorStop(0.45, cover.cloth[1]); bg.addColorStop(1, cover.cloth[2]);
   g.fillStyle = bg; g.fillRect(0, 0, w, h);
   // woven cloth: faint warp + weft threads and speckle
   g.globalAlpha = 0.07;
-  g.fillStyle = '#0d2b2a';
+  g.fillStyle = cover.weave;
   for (let x = 0; x < w; x += 3) g.fillRect(x, 0, 1, h);
   for (let y = 0; y < h; y += 3) g.fillRect(0, y, w, 1);
   g.globalAlpha = 1;
@@ -264,71 +265,66 @@ export function drawCloth(cv) {
   g.putImageData(img, 0, 0);
 }
 
-const ORN = ['M96 118 C112 103 136 103 150 113 C164 103 188 103 204 118', 'M120 100 C135 94 165 94 180 100'];
-const SCROLL = ['M86 208 C70 194 50 198 52 208 C54 218 72 216 74 208 C75 202 66 200 65 205', 'M86 208 H214'];
-
-/** Draws the foil art (viewBox 300×480) onto g in a single colour/gradient. */
-function foilArt(g, paint, ox = 0, oy = 0) {
+/** Draws a cover's art (viewBox 300×480) onto g; paint = foil, acc = accent colour (falls back to the foil). */
+function foilArt(g, art, paint, acc = paint, ox = 0, oy = 0) {
   g.save();
   g.translate(ox, oy);
   g.lineJoin = 'round'; g.lineCap = 'round';
-  g.strokeStyle = paint;
-  g.fillStyle = paint;
-  const stroke = (d, lw) => { g.lineWidth = lw; g.stroke(new Path2D(d)); };
-  stroke('M105 118 H202 L254 141 V247 L202 268 H105 L52 247 V141 Z', 1.6);
-  stroke('M108.5 123 H198.5 L249 143.5 V244.5 L198.5 263 H108.5 L57 244.5 V143.5 Z', 0.9);
-  const ellipse = (cx, cy, rx, ry) => { g.lineWidth = 1; g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); g.stroke(); };
-  const ornament = () => { ellipse(150, 106, 9, 8); ellipse(128, 110, 24, 9.5); ellipse(172, 110, 24, 9.5); ORN.forEach((d) => stroke(d, 1)); };
-  ornament();
-  g.save(); g.translate(0, 386); g.scale(1, -1); ornament(); g.restore();
-  SCROLL.forEach((d) => stroke(d, 1));
-  g.save(); g.translate(300, 0); g.scale(-1, 1); SCROLL.forEach((d) => stroke(d, 1)); g.restore();
-  g.beginPath(); g.moveTo(148, 205); g.lineTo(151, 208); g.lineTo(148, 211); g.lineTo(145, 208); g.closePath(); g.fill();
-  g.textAlign = 'center'; g.textBaseline = 'alphabetic';
-  const text = (s, y, size, wdt, weight = 500) => {
-    g.font = `${weight} ${size}px ${UI}`;
-    // stretch to a fixed width, like the printed foil
-    const natural = g.measureText(s).width;
-    g.save(); g.translate(153, y); g.scale(wdt / natural, 1); g.fillText(s, 0, 0); g.restore();
+  g.textBaseline = 'alphabetic';
+  const draw = (items) => {
+    for (const it of items) {
+      if (it.items) { g.save(); g.transform(...it.m); draw(it.items); g.restore(); continue; }
+      const p = it.acc ? acc : paint;
+      g.fillStyle = p; g.strokeStyle = p;
+      if (it.s) {
+        const sans = it.f !== 'serif';
+        g.font = sans ? `${it.weight || 500} ${it.size}px ${UI}` : `italic ${it.weight || 500} ${it.size}px ${SERIF}`;
+        g.textAlign = 'left';
+        // stretch to a fixed width, like the printed foil
+        const natural = g.measureText(it.s).width;
+        const x0 = (it.a || 'middle') === 'start' ? it.x : it.x - it.w / 2;
+        g.save(); g.translate(x0, it.y); g.scale(it.w / natural, 1); g.fillText(it.s, 0, 0); g.restore();
+      } else if (it.fill) g.fill(new Path2D(it.d));
+      else if (it.lw) { g.lineWidth = it.lw; g.stroke(new Path2D(it.d)); }
+    }
   };
-  text('ONE LINE', 167, 25, 142);
-  text('A DAY', 193, 25, 88);
-  text('A FIVE-YEAR', 233, 12.5, 100, 400);
-  text('MEMORY BOOK', 249, 12.5, 116, 400);
+  draw(art);
   g.restore();
 }
 
 /** Cover canvases: colour map, plus metalness/roughness maps so the foil catches the light. */
-export function drawCover(w, h) {
+export function drawCover(w, h, cover = coverOf()) {
   const make = () => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
   const color = make(), metal = make(), rough = make();
-  drawCloth(color);
+  drawCloth(color, cover);
   const sx = w / 300, sy = h / 480;
   const g = color.getContext('2d');
   g.save(); g.scale(sx, sy);
-  const gold = g.createLinearGradient(50, 100, 250, 280);
-  gold.addColorStop(0, '#f6e7ae'); gold.addColorStop(0.35, '#cfa954'); gold.addColorStop(0.6, '#f3e0a0'); gold.addColorStop(1, '#b98c33');
+  const foil = g.createLinearGradient(50, 100, 250, 280);
+  const [f0, f1, f2, f3] = cover.foil;
+  foil.addColorStop(0, f0); foil.addColorStop(0.35, f1); foil.addColorStop(0.6, f2); foil.addColorStop(1, f3);
   // faint deboss shadow first, then the foil
-  foilArt(g, 'rgba(0,30,30,.35)', 0.5, 0.7);
-  foilArt(g, gold);
+  foilArt(g, cover.art, cover.deboss, cover.deboss, 0.5, 0.7);
+  foilArt(g, cover.art, foil, cover.accent || foil);
   g.restore();
   // hinge groove down the left
   g.fillStyle = 'rgba(0,0,0,.16)'; g.fillRect(w * 0.042, 0, 2, h);
   g.fillStyle = 'rgba(255,255,255,.14)'; g.fillRect(w * 0.042 + 2, 0, 1, h);
 
   const mg = metal.getContext('2d'); mg.fillStyle = '#000'; mg.fillRect(0, 0, w, h);
-  mg.save(); mg.scale(sx, sy); foilArt(mg, '#fff'); mg.restore();
+  const m = Math.round(255 * cover.metal);
+  if (m) { mg.save(); mg.scale(sx, sy); const mc = `rgb(${m},${m},${m})`; foilArt(mg, cover.art, mc); mg.restore(); }
   const rg = rough.getContext('2d'); rg.fillStyle = '#e8e8e8'; rg.fillRect(0, 0, w, h);
-  rg.save(); rg.scale(sx, sy); foilArt(rg, '#4a4a4a'); rg.restore();
+  rg.save(); rg.scale(sx, sy); foilArt(rg, cover.art, cover.metal ? '#4a4a4a' : '#c0c0c0'); rg.restore();
   return { color, metal, rough };
 }
 
 /** The inside of a cover: cloth turn-in with the pasted endpaper (title page on the front, plain on the back). */
-export function drawInsideBoard(w, h, { title, owner, years, hand, spineOnRight }) {
+export function drawInsideBoard(w, h, { title, owner, years, hand, spineOnRight, cover }) {
   const cv = document.createElement('canvas');
   cv.width = w; cv.height = h;
   const g = cv.getContext('2d');
-  drawCloth(cv);
+  drawCloth(cv, cover);
   // paper pasted down, with a wider cloth margin on the outer edge than at the hinge
   const marginOuter = w * 0.04, marginSpine = w * 0.005, mv = h * 0.022;
   const px = spineOnRight ? marginOuter : marginSpine;

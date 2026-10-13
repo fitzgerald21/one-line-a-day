@@ -1,6 +1,7 @@
 import { h, icon, toast } from './ui.js';
 import * as store from './store.js';
 import { createBook } from './book.js';
+import { applyCoverTheme } from './cover.js';
 import { createJournal, createCalendar, createProgress } from './views.js';
 import { openEditor } from './editor.js';
 import { openSettings } from './settings.js';
@@ -100,6 +101,7 @@ addEventListener('hashchange', () => { const id = location.hash.slice(1); if (vi
 // handwriting style
 function applySettings() {
   document.documentElement.dataset.hand = store.getSettings().hand;
+  applyCoverTheme(store.getSettings().cover);
 }
 applySettings();
 store.onSettings(applySettings);

@@ -10,6 +10,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { h, icon, clamp, debounce } from './ui.js';
 import { PAGES, LAST, MONTHS, MONTHS_SHORT, dateKey, today, pageOf, pageOfKey, parseKey } from './dates.js';
 import * as store from './store.js';
+import { coverOf } from './covers.js';
 import { createBook as createFlatBook } from './book.js';
 import * as PT from './pagetex.js';
 
@@ -305,7 +306,8 @@ export function createBook3D({ openSettings }) {
 
   const tex = new TexMgr(renderer);
   const clothCv = Object.assign(document.createElement('canvas'), { width: 512, height: 512 });
-  PT.drawCloth(clothCv);
+  const coverTheme = () => coverOf(store.getSettings().cover);
+  PT.drawCloth(clothCv, coverTheme());
   const clothTex = tex.fromCanvas(clothCv, { repeat: true });
   const clothMat = new THREE.MeshStandardMaterial({ map: clothTex, bumpMap: clothTex, bumpScale: 0.6, roughness: 0.92, metalness: 0 });
   const edgeCv = Object.assign(document.createElement('canvas'), { width: 8, height: 64 });
@@ -317,14 +319,14 @@ export function createBook3D({ openSettings }) {
   // boards ------------------------------------------------------------------------------
   const BW = 1024, BH = Math.round((1024 * BOARD_H) / BOARD_W);
   const insideTex = (front) => tex.fromCanvas(PT.drawInsideBoard(BW, BH, {
-    title: front, owner: store.getSettings().owner, years: store.bookYears(), hand: store.getSettings().hand, spineOnRight: front,
+    title: front, owner: store.getSettings().owner, years: store.bookYears(), hand: store.getSettings().hand, spineOnRight: front, cover: coverTheme(),
   }));
   let insideFront = insideTex(true), insideBack = insideTex(false);
-  const coverMaps = PT.drawCover(BW, BH);
+  const coverMaps = PT.drawCover(BW, BH, coverTheme());
   const coverColor = tex.fromCanvas(coverMaps.color);
   const coverMetal = tex.fromCanvas(coverMaps.metal); coverMetal.colorSpace = THREE.NoColorSpace;
   const coverRough = tex.fromCanvas(coverMaps.rough); coverRough.colorSpace = THREE.NoColorSpace;
-  const coverMat = new THREE.MeshStandardMaterial({ map: coverColor, metalnessMap: coverMetal, roughnessMap: coverRough, metalness: 0.7, roughness: 0.9, bumpMap: coverRough, bumpScale: -0.4, envMapIntensity: 2.2, emissiveMap: coverMetal, emissive: new THREE.Color(0x8a6b22), emissiveIntensity: 0.55 });
+  const coverMat = new THREE.MeshStandardMaterial({ map: coverColor, metalnessMap: coverMetal, roughnessMap: coverRough, metalness: 0.7, roughness: 0.9, bumpMap: coverRough, bumpScale: -0.4, envMapIntensity: 2.2, emissiveMap: coverMetal, emissive: new THREE.Color(coverTheme().glow), emissiveIntensity: 0.55 });
   const mkInside = (t) => new THREE.MeshStandardMaterial({ map: t, roughness: 0.95 });
   let frontInsideMat = mkInside(insideFront), backInsideMat = mkInside(insideBack);
   const boardGeo = new THREE.BoxGeometry(BOARD_W, BOARD_H, C);
@@ -1025,7 +1027,16 @@ export function createBook3D({ openSettings }) {
     strip.draw();
     dirty();
   });
+  let shownCover = store.getSettings().cover;
+  function recolourCover() {
+    shownCover = store.getSettings().cover;
+    PT.drawCloth(clothCv, coverTheme()); clothTex.needsUpdate = true;
+    const cm = PT.drawCover(BW, BH, coverTheme());
+    for (const [cvs, t] of [[cm.color, coverColor], [cm.metal, coverMetal], [cm.rough, coverRough]]) { t.image = cvs; t.needsUpdate = true; }
+    coverMat.emissive.set(coverTheme().glow);
+  }
   store.onSettings(() => {
+    if (store.getSettings().cover !== shownCover) recolourCover();
     tex.bump(null);
     insideFront = insideTex(true); frontInsideMat.map = insideFront; frontInsideMat.needsUpdate = true;
     insideBack = insideTex(false); backInsideMat.map = insideBack; backInsideMat.needsUpdate = true;
@@ -1037,7 +1048,7 @@ export function createBook3D({ openSettings }) {
       tex.bump(null);
       insideFront = insideTex(true); frontInsideMat.map = insideFront; frontInsideMat.needsUpdate = true;
       insideBack = insideTex(false); backInsideMat.map = insideBack; backInsideMat.needsUpdate = true;
-      const cm = PT.drawCover(BW, BH);
+      const cm = PT.drawCover(BW, BH, coverTheme());
       for (const [cvs, t] of [[cm.color, coverColor], [cm.metal, coverMetal], [cm.rough, coverRough]]) { t.image = cvs; t.needsUpdate = true; }
       setStaticTextures();
       dirty();

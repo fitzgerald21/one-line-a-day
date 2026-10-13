@@ -16,6 +16,7 @@ export const DEFAULTS = {
   startYear: 'auto',    // 'auto' = earliest year with entries, or a number
   hand: 'caveat',       // 'caveat' | 'kalam' | 'patrick' | 'clean'
   owner: '',
+  cover: 'teal',        // which cover design the book wears (see js/covers.js)
   whisper: { model: 'whisper-large-v3-turbo', language: '' },
   ai: { provider: 'openrouter', model: '', summaryChars: 200, extra: '' },
   autoSummarize: false,
