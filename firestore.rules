@@ -1,6 +1,6 @@
 rules_version = '2';
-// SHARED FILE: this database serves every app in the come-back-fitz21 Firebase project (Come back, Little Bites and One Line a Day).
-// Firestore has one ruleset per database, so keep this file IDENTICAL in all three repos; deploying from either one is then safe.
+// SHARED FILE: this database serves every app in the come-back-fitz21 Firebase project (Come back, Little Bites, One Line a Day and Recipe Book).
+// Firestore has one ruleset per database, so keep this file IDENTICAL in all four repos; deploying from any one is then safe.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -32,6 +32,25 @@ service cloud.firestore {
     function isOlad(uid) {
       return request.auth != null && request.auth.uid == uid
         && request.auth.token.email == 'fitzgeraldryan21@gmail.com' && request.auth.token.email_verified == true;
+    }
+
+    // --- Recipe Book: open to anyone who signs in; each account reads and writes only its own recipes and categories ---
+    match /users/{uid}/recipes/{id} {
+      allow read, delete: if isSelf(uid);
+      allow create, update: if isSelf(uid)
+        && request.resource.data.id == id
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 500;
+    }
+    match /users/{uid}/recipeCategories/{id} {
+      allow read, delete: if isSelf(uid);
+      allow create, update: if isSelf(uid)
+        && request.resource.data.id == id
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 200;
+    }
+    function isSelf(uid) {
+      return request.auth != null && request.auth.uid == uid;
     }
   }
 }
