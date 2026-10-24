@@ -239,17 +239,15 @@ export function bookYears() {
 }
 
 /**
- * The year rows on one page (month m 0-11, day d). In the 'filled' layout that is only the years with an entry
- * on that date, at most the latest five; with none it is just this year, and today's page always has this year.
+ * The year rows on one page (month m 0-11, day d). In the 'filled' layout that is the years with an entry on that
+ * date plus this year (so every page can be written in for the current year, past or future), at most five rows.
  * Other layouts show the same rows on every page.
  */
 export function pageYears(m, d) {
   if (settings.layout !== 'filled') return bookYears();
-  const t = today();
-  const ys = index().yearsByPage[pageOf(m, d)];
-  const out = new Set(ys);
-  if (!ys.length || (m === t.m && d === t.d)) out.add(t.y);
-  return [...out].sort((a, b) => a - b).slice(-5);
+  const cy = today().y;
+  const others = index().yearsByPage[pageOf(m, d)].filter((y) => y !== cy);
+  return [...others.slice(-4), cy].sort((a, b) => a - b);
 }
 
 /** Entries the book can't currently show (e.g. a misread 2021 when the book is 2022–2026). */
